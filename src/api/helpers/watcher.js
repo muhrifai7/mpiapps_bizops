@@ -21,7 +21,6 @@ const watcher = chokidar.watch(`${source_folder}`, {
 const insertOrUpdateDataOutlet = async (data, table) => {
   try {
     const outletSiteNumber = data.OUTLETSITENUMBER;
-    console.log(data, "dad");
     // Check if the outlet already exists in the database based on the outletSiteNumber
     const checkExist = await db.query(
       `SELECT id FROM ${table} WHERE outletSiteNumber = ?`,
