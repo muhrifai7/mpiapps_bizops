@@ -15,21 +15,22 @@ const success_folder = `${root_folder}/${processed_path}`;
 const failed_folder = `${root_folder}/${failed_path}`;
 const watcher = chokidar.watch(`${source_folder}`, {
   persistent: true,
+  ignoreInitial: false,
 });
 
-const insertOrUpdateDataOutlet = async (data, fileName) => {
+const insertOrUpdateDataOutlet = async (data, table) => {
   try {
     const outletSiteNumber = data.OUTLETSITENUMBER;
-
+    console.log(data, "dad");
     // Check if the outlet already exists in the database based on the outletSiteNumber
     const checkExist = await db.query(
-      `SELECT id FROM m_outlet WHERE outletSiteNumber = ?`,
+      `SELECT id FROM ${table} WHERE outletSiteNumber = ?`,
       [outletSiteNumber]
     );
-    if (checkExist && checkExist.length > 0) {
+    if (checkExist && checkExist[0].length > 0) {
       // Outlet exists, so update the data in m_outlet
       const outletId = checkExist[0].id;
-      const updateQuery = `UPDATE m_outlet SET
+      const updateQuery = `UPDATE ${table} SET
         outletSiteNumber = ?,
         idbranch = ?,
         outletStatus = ?,
@@ -61,7 +62,7 @@ const insertOrUpdateDataOutlet = async (data, fileName) => {
       );
     } else {
       // Outlet does not exist, so insert the data into m_outlet
-      const insertQuery = `INSERT INTO m_outlet (
+      const insertQuery = `INSERT INTO ${table} (
         outletSiteNumber,
         idbranch,
         outletStatus,
@@ -92,8 +93,86 @@ const insertOrUpdateDataOutlet = async (data, fileName) => {
       );
     }
   } catch (err) {
-    console.log("Error inserting/updating data:", err);
-    return err;
+    throw new err();
+  }
+};
+
+const insertOrUpdateDataItem = async (data, table) => {
+  try {
+    const itemInventoryItemId = data.INVENTORY_ITEM_ID;
+    // Check if the outlet already exists in the database based on the outletSiteNumber
+    const checkExist = await db.query(
+      `SELECT itemInventoryItemId FROM ${table} WHERE itemInventoryItemId = ?`,
+      [itemInventoryItemId]
+    );
+    console.log(checkExist, "checkExist");
+    if (checkExist && checkExist[0].length > 0) {
+      // Outlet exists, so update the data in m_outlet
+      const updateQuery = `UPDATE ${table} SET
+      itemInventoryItemId = ?,
+      itemSupId = ?,
+      itemProduk = ?,
+      itemUom = ?,
+      itemSatuanKecil = ?,
+      itemClassProduk = ?,
+      itemIDprinc = ?,
+      itemHna = ?,
+      itemClassName = ?
+            WHERE itemInventoryItemId = ?`;
+
+      const updateData = [
+        data.INVENTORY_ITEM_ID,
+        data.SUPLIER_ID,
+        data.PRODUK,
+        data.UOM,
+        data.SATUAN_KECIL,
+        data.CLASS_PROD,
+        data.PRINCIPAL,
+        data.HNA,
+        data.CLASS_NAME,
+        itemInventoryItemId,
+      ];
+
+      let updateStmt = await db.query(updateQuery, updateData);
+      console.log(
+        `Outlet with INVENTORY_ITEM_ID ${itemInventoryItemId} updated successfully!`
+      );
+    } else {
+      // Outlet does not exist, so insert the data into m_outlet
+      const insertQuery = `INSERT INTO ${table} (
+        itemInventoryItemId,
+        itemCode,
+        itemSupId,
+        itemProduk,
+        itemUom,
+        itemSatuanKecil,
+        itemClassProduk,
+        itemIDprinc,
+        itemClassName,
+        itemHna
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+      const insertData = [
+        data.INVENTORY_ITEM_ID,
+        data.ITEM,
+        data.SUPLIER_ID,
+        data.PRODUK,
+        data.UOM,
+        data.SATUAN_KECIL,
+        data.CLASS_PROD,
+        data.PRINCIPAL,
+        data.CLASS_NAME,
+        data.HNA,
+      ];
+
+      let insertStmnt = await db.query(insertQuery, insertData);
+      console.log(insertStmnt, "insertStmnt");
+      console.log(
+        `Outlet with INVENTORY_ITEM_ID ${itemInventoryItemId} inserted successfully!`
+      );
+    }
+  } catch (err) {
+    throw new err();
   }
 };
 
@@ -103,6 +182,7 @@ watcher.on("ready", () => {
 });
 
 watcher.on("add", async (path) => {
+  console.log(path, "path");
   const fileName = path.split("/").slice(-1)[0];
   if (fileName.toUpperCase().indexOf("M_OUTLET") != -1) {
     setTimeout(async () => {
@@ -110,8 +190,39 @@ watcher.on("add", async (path) => {
         const workbook = xlsx.readFile(path, { raw: true });
         const sheet = workbook.SheetNames[0];
         const csvData = xlsx.utils.sheet_to_json(workbook.Sheets[sheet]);
+        const table = "m_outlet";
         for (const data of csvData) {
-          await insertOrUpdateDataOutlet(data, fileName);
+          await insertOrUpdateDataOutlet(data, table);
+        }
+        const newFileName = `${success_folder}/${fileName}`;
+        fs.rename(path, newFileName, (err) => {
+          if (err) {
+            console.log(`Error while renaming after insert: ${err.message}`);
+          } else {
+            console.log(`Succeed to process and moved file to: ${newFileName}`);
+          }
+        });
+      } catch (error) {
+        const newFileName = `${failed_folder}/${fileName}`;
+        fs.renameSync(path, newFileName, (err) => {
+          if (err) {
+            console.log(`Error while moving Failed file : ${err.message}`);
+          } else {
+            console.log(`Failed to process and moved file to: ${newFileName}`);
+          }
+        });
+      }
+    }, 800);
+  }
+  if (fileName.toUpperCase().indexOf("M_ITEM") != -1) {
+    setTimeout(async () => {
+      try {
+        const workbook = xlsx.readFile(path, { raw: true });
+        const sheet = workbook.SheetNames[0];
+        const csvData = xlsx.utils.sheet_to_json(workbook.Sheets[sheet]);
+        const table = "m_item";
+        for (const data of csvData) {
+          await insertOrUpdateDataItem(data, table);
         }
         const newFileName = `${success_folder}/${fileName}`;
         fs.rename(path, newFileName, (err) => {
