@@ -1,14 +1,20 @@
 import express from "express";
 import routes from "./api/routes/index.js";
-
+import dotenv from "dotenv";
+dotenv.config();
 const app = express();
-const port = 3002;
+const port = process.env.PORT || 3002;
 
 // Middleware to parse incoming JSON data
+app.use(
+  express.urlencoded({
+    extended: true,
+  })
+);
 app.use(express.json());
 
 app.use("/api", routes);
 // Start the server
 app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+  console.log(`Server is running on ${process.env.ENV}:${port}`);
 });

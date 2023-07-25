@@ -4,7 +4,7 @@ import chokidar from "chokidar";
 import moment from "moment";
 import xlsx from "xlsx";
 
-import db from "../config/db.js";
+import db from "../../config/db.js";
 
 const root_folder = process.env.SOURCE_FILE;
 const upload_path = process.env.UPLOAD_PATH;
@@ -13,7 +13,6 @@ const failed_path = process.env.FAILED_FILE;
 const source_folder = `${root_folder}/${upload_path}`;
 const success_folder = `${root_folder}/${processed_path}`;
 const failed_folder = `${root_folder}/${failed_path}`;
-console.log(source_folder, "source_folder");
 const watcher = chokidar.watch(`${source_folder}`, {
   persistent: true,
 });
@@ -99,7 +98,7 @@ const insertOrUpdateDataOutlet = async (data, fileName) => {
 };
 
 watcher.on("ready", () => {
-  console.log("Watcher is ready and scanning files...");
+  console.log(`Watcher is ready and scanning files on ${source_folder}`);
   // You can optionally process existing files here if needed
 });
 

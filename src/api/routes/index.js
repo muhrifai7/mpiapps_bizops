@@ -3,6 +3,4 @@ import { Router } from "express";
 import outlet from "./outlet.js";
 const router = Router();
 router.use("/outlet", outlet);
-
-console.log(router, "router");
 export default router;
