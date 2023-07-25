@@ -6,16 +6,19 @@ import xlsx from "xlsx";
 
 import db from "../config/db.js";
 
-// const source_folder = "/home/opc/CSV_File";
-const source_folder = "/Users/rifai/CSV_File/upload";
-// const source_folder = ".";
+const root_folder = process.env.SOURCE_FILE;
+const upload_path = process.env.UPLOAD_PATH;
+const processed_path = process.env.PROCCESSED_FILE;
+const failed_path = process.env.FAILED_FILE;
+const source_folder = `${root_folder}/${upload_path}`;
+const success_folder = `${root_folder}/${processed_path}`;
+const failed_folder = `${root_folder}/${failed_path}`;
 const watcher = chokidar.watch(`${source_folder}`, {
   persistent: true,
 });
 
 const insertOrUpdateDataOutlet = async (data, fileName) => {
   try {
-    console.log(data, "data");
     const outletSiteNumber = data.OUTLETSITENUMBER;
 
     // Check if the outlet already exists in the database based on the outletSiteNumber
@@ -23,7 +26,6 @@ const insertOrUpdateDataOutlet = async (data, fileName) => {
       `SELECT id FROM m_outlet WHERE outletSiteNumber = ?`,
       [outletSiteNumber]
     );
-
     if (checkExist && checkExist.length > 0) {
       // Outlet exists, so update the data in m_outlet
       const outletId = checkExist[0].id;
@@ -60,53 +62,28 @@ const insertOrUpdateDataOutlet = async (data, fileName) => {
     } else {
       // Outlet does not exist, so insert the data into m_outlet
       const insertQuery = `INSERT INTO m_outlet (
-            ACCOUNT_TERMINATION_DATE,
-            OUTLETSITENUMBER,
-            BRANCHID,
-            STATUS_OUTLET,
-            OUTLETKLAS,
-            OUTLETPELANGGAN,
-            OUTLETKRLIMIT,
-            OUTLETALAMAT,
-            OUTLETCODECOLL,
-            OUTLETCITY,
-            CUSTOMERID,
-            PARTYNAME,
-            NPWP,
-            TAX_CODE,
-            CUST_ID,
-            CUSTOMERNUMBER,
-            PARTYSITEID,
-            REFERENCESITENUMBER,
-            SIA,
-            SIPA,
-            EDOUT,
-            EDSIPA
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        outletSiteNumber,
+        idbranch,
+        outletStatus,
+        outletKlas,
+        outletPelanggan,
+        outletAlamat,
+        outletCodeColl,
+        outletCity,
+        outletCustNumber
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
       const insertData = [
-        data.ACCOUNT_TERMINATION_DATE,
         data.OUTLETSITENUMBER,
         data.BRANCHID,
         data.STATUS_OUTLET,
         data.OUTLETKLAS,
         data.OUTLETPELANGGAN,
-        data.OUTLETKRLIMIT,
+        // data.OUTLETKRLIMIT,
         data.OUTLETALAMAT,
         data.OUTLETCODECOLL,
         data.OUTLETCITY,
         data.CUSTOMERID,
-        data.PARTYNAME,
-        data.NPWP,
-        data.TAX_CODE,
-        data.CUST_ID,
-        data.CUSTOMERNUMBER,
-        data.PARTYSITEID,
-        data.REFERENCESITENUMBER,
-        data.SIA,
-        data.SIPA,
-        data.EDOUT,
-        data.EDSIPA,
       ];
 
       await db.query(insertQuery, insertData);
@@ -120,19 +97,39 @@ const insertOrUpdateDataOutlet = async (data, fileName) => {
   }
 };
 
-watcher.on("add", async (path) => {
-  try {
-    console.log("File added:", path);
+watcher.on("ready", () => {
+  console.log("Watcher is ready and scanning files...");
+  // You can optionally process existing files here if needed
+});
 
-    const workbook = xlsx.readFile(path, { raw: true });
-    const sheet = workbook.SheetNames[0];
-    const fileName = path.split("/").slice(-1)[0];
-    const csvData = xlsx.utils.sheet_to_json(workbook.Sheets[sheet]);
-    for (const data of csvData) {
-      await insertOrUpdateDataOutlet(data, fileName);
+watcher.on("add", async (path) => {
+  const fileName = path.split("/").slice(-1)[0];
+  if (fileName.toUpperCase().indexOf("M_OUTLET") != -1) {
+    try {
+      const workbook = xlsx.readFile(path, { raw: true });
+      const sheet = workbook.SheetNames[0];
+      const csvData = xlsx.utils.sheet_to_json(workbook.Sheets[sheet]);
+      for (const data of csvData) {
+        await insertOrUpdateDataOutlet(data, fileName);
+      }
+      const newFileName = `${success_folder}/${fileName}`;
+      fs.rename(path, newFileName, (err) => {
+        if (err) {
+          console.log(`Error while renaming after insert: ${err.message}`);
+        } else {
+          console.log(`Succeed to process and moved file to: ${newFileName}`);
+        }
+      });
+    } catch (error) {
+      const newFileName = `${failed_folder}/${fileName}`;
+      fs.renameSync(path, newFileName, (err) => {
+        if (err) {
+          console.log(`Error while moving Failed file : ${err.message}`);
+        } else {
+          console.log(`Failed to process and moved file to: ${newFileName}`);
+        }
+      });
     }
-  } catch (error) {
-    console.error("Error processing file:", error);
   }
 });
 
