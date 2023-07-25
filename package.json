@@ -6,7 +6,9 @@
   "main": "src/app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon src/app.js"
+    "start": "node src/app.js",
+    "watcher": "node src/utils/watcher.js",
+    "dev": "concurrently \"npm run start\" \"npm run watcher\""
   },
   "author": "",
   "license": "ISC",

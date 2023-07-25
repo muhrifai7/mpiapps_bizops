@@ -13,6 +13,7 @@ const failed_path = process.env.FAILED_FILE;
 const source_folder = `${root_folder}/${upload_path}`;
 const success_folder = `${root_folder}/${processed_path}`;
 const failed_folder = `${root_folder}/${failed_path}`;
+console.log(source_folder, "source_folder");
 const watcher = chokidar.watch(`${source_folder}`, {
   persistent: true,
 });
@@ -105,31 +106,33 @@ watcher.on("ready", () => {
 watcher.on("add", async (path) => {
   const fileName = path.split("/").slice(-1)[0];
   if (fileName.toUpperCase().indexOf("M_OUTLET") != -1) {
-    try {
-      const workbook = xlsx.readFile(path, { raw: true });
-      const sheet = workbook.SheetNames[0];
-      const csvData = xlsx.utils.sheet_to_json(workbook.Sheets[sheet]);
-      for (const data of csvData) {
-        await insertOrUpdateDataOutlet(data, fileName);
+    setTimeout(async () => {
+      try {
+        const workbook = xlsx.readFile(path, { raw: true });
+        const sheet = workbook.SheetNames[0];
+        const csvData = xlsx.utils.sheet_to_json(workbook.Sheets[sheet]);
+        for (const data of csvData) {
+          await insertOrUpdateDataOutlet(data, fileName);
+        }
+        const newFileName = `${success_folder}/${fileName}`;
+        fs.rename(path, newFileName, (err) => {
+          if (err) {
+            console.log(`Error while renaming after insert: ${err.message}`);
+          } else {
+            console.log(`Succeed to process and moved file to: ${newFileName}`);
+          }
+        });
+      } catch (error) {
+        const newFileName = `${failed_folder}/${fileName}`;
+        fs.renameSync(path, newFileName, (err) => {
+          if (err) {
+            console.log(`Error while moving Failed file : ${err.message}`);
+          } else {
+            console.log(`Failed to process and moved file to: ${newFileName}`);
+          }
+        });
       }
-      const newFileName = `${success_folder}/${fileName}`;
-      fs.rename(path, newFileName, (err) => {
-        if (err) {
-          console.log(`Error while renaming after insert: ${err.message}`);
-        } else {
-          console.log(`Succeed to process and moved file to: ${newFileName}`);
-        }
-      });
-    } catch (error) {
-      const newFileName = `${failed_folder}/${fileName}`;
-      fs.renameSync(path, newFileName, (err) => {
-        if (err) {
-          console.log(`Error while moving Failed file : ${err.message}`);
-        } else {
-          console.log(`Failed to process and moved file to: ${newFileName}`);
-        }
-      });
-    }
+    }, 800);
   }
 });
 
