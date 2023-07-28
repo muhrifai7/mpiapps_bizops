@@ -4,7 +4,7 @@ import chokidar from "chokidar";
 import moment from "moment";
 import xlsx from "xlsx";
 
-import db from "../../config/db.js";
+import setupConnections from "../../config/db.js";
 
 const root_folder = process.env.SOURCE_FILE;
 const upload_path = process.env.UPLOAD_PATH;
@@ -20,15 +20,18 @@ const watcher = chokidar.watch(`${source_folder}`, {
 
 const insertOrUpdateDataOutlet = async (data, table) => {
   try {
+    const { connectionToWebDiskon, connectionToSimpi } =
+      await setupConnections();
+
     const outletSiteNumber = data.OUTLETSITENUMBER;
     // Check if the outlet already exists in the database based on the outletSiteNumber
-    const checkExist = await db.query(
+    const checkExist = await connectionToSimpi.query(
       `SELECT id FROM ${table} WHERE outletSiteNumber = ?`,
       [outletSiteNumber]
     );
     if (checkExist && checkExist[0].length > 0) {
       // Outlet exists, so update the data in m_outlet
-      const outletId = checkExist[0].id;
+      const outletId = checkExist[0][0].id;
       const updateQuery = `UPDATE ${table} SET
         outletSiteNumber = ?,
         idbranch = ?,
@@ -47,15 +50,13 @@ const insertOrUpdateDataOutlet = async (data, table) => {
         data.STATUS_OUTLET,
         data.OUTLETKLAS,
         data.OUTLETPELANGGAN,
-        // data.OUTLETKRLIMIT,
         data.OUTLETALAMAT,
         data.OUTLETCODECOLL,
         data.OUTLETCITY,
-        data.CUSTOMERID,
+        data.CUST_ID,
         outletId,
       ];
-
-      await db.query(updateQuery, updateData);
+      await connectionToSimpi.query(updateQuery, updateData);
       console.log(
         `Outlet with outletSiteNumber ${outletSiteNumber} updated successfully!`
       );
@@ -79,14 +80,92 @@ const insertOrUpdateDataOutlet = async (data, table) => {
         data.STATUS_OUTLET,
         data.OUTLETKLAS,
         data.OUTLETPELANGGAN,
+        data.OUTLETALAMAT,
+        data.OUTLETCODECOLL,
+        data.OUTLETCITY,
+        data.CUST_ID,
+      ];
+      await connectionToSimpi.query(insertQuery, insertData);
+      console.log(
+        `Outlet with outletSiteNumber ${outletSiteNumber} inserted successfully!`
+      );
+    }
+
+    const checkExistDbDiskon = await connectionToWebDiskon.query(
+      `SELECT outlet_id FROM ${table} WHERE outletSiteNumber = ?`,
+      [outletSiteNumber]
+    );
+    if (checkExistDbDiskon && checkExistDbDiskon[0].length > 0) {
+      // Outlet exists, so update the data in m_outlet
+      const outlet_id = checkExistDbDiskon[0][0].outlet_id;
+      const updateData = [
+        data.OUTLETSITENUMBER,
+        data.BRANCHID,
+        data.STATUS_OUTLET,
+        data.OUTLETKLAS,
+        data.OUTLETPELANGGAN,
+        data.OUTLETALAMAT,
+        data.OUTLETCODECOLL,
+        data.OUTLETCITY,
+        data.CUST_ID,
+        data.CUSTOMERNUMBER,
+        data.PARTYSITEID,
+        data.REFERENCESITENUMBER,
+        outlet_id,
+      ];
+      const updateQueryDiskon = `UPDATE ${table} SET
+        outletSiteNumber = ?,
+        branchId = ?,
+        outletStatus = ?,
+        outletKlas = ?,
+        outletPelanggan = ?,
+        outletAlamat = ?,
+        outletCodeColl = ?,
+        outletCity = ?,
+        cust_id = ?,
+        customerNumber = ?,
+        partySiteId = ?,
+        siteNumberRefrences = ?
+            WHERE outlet_id = ?`;
+
+      console.log(updateData, "updateData");
+      let result = await connectionToWebDiskon.query(
+        updateQueryDiskon,
+        updateData
+      );
+      console.log(result, "result");
+      console.log(
+        `Outlet with outletSiteNumber ${outletSiteNumber} updated successfully!`
+      );
+    } else {
+      const insertData = [
+        data.OUTLETSITENUMBER,
+        data.BRANCHID,
+        data.STATUS_OUTLET,
+        data.OUTLETKLAS,
+        data.OUTLETPELANGGAN,
         // data.OUTLETKRLIMIT,
         data.OUTLETALAMAT,
         data.OUTLETCODECOLL,
         data.OUTLETCITY,
         data.CUSTOMERID,
       ];
+      const insertQueryDiskon = `INSERT INTO ${table} (
+        outletSiteNumber,
+        branchId,
+        outletStatus,
+        outletKlas,
+        outletPelanggan,
+        outletAlamat,
+        outletCodeColl,
+        outletCity,
+        cust_id,
+        customerNumber,
+        partySiteId,
+        siteNumberRefrences
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-      await db.query(insertQuery, insertData);
+      await connectionToWebDiskon.query(insertQueryDiskon, insertData);
       console.log(
         `Outlet with outletSiteNumber ${outletSiteNumber} inserted successfully!`
       );
@@ -98,13 +177,19 @@ const insertOrUpdateDataOutlet = async (data, table) => {
 
 const insertOrUpdateDataItem = async (data, table) => {
   try {
+    console.log(data, "data");
+    const { connectionToWebDiskon, connectionToSimpi } =
+      await setupConnections();
     const itemInventoryItemId = data.INVENTORY_ITEM_ID;
+    console.log(
+      `SELECT itemInventoryItemId FROM ${table} WHERE itemInventoryItemId = ?`
+    );
     // Check if the outlet already exists in the database based on the outletSiteNumber
-    const checkExist = await db.query(
+    const checkExist = await connectionToSimpi.query(
       `SELECT itemInventoryItemId FROM ${table} WHERE itemInventoryItemId = ?`,
       [itemInventoryItemId]
     );
-    console.log(checkExist, "checkExist");
+
     if (checkExist && checkExist[0].length > 0) {
       // Outlet exists, so update the data in m_outlet
       const updateQuery = `UPDATE ${table} SET
@@ -132,7 +217,7 @@ const insertOrUpdateDataItem = async (data, table) => {
         itemInventoryItemId,
       ];
 
-      let updateStmt = await db.query(updateQuery, updateData);
+      await connectionToSimpi.query(updateQuery, updateData);
       console.log(
         `Outlet with INVENTORY_ITEM_ID ${itemInventoryItemId} updated successfully!`
       );
@@ -164,8 +249,72 @@ const insertOrUpdateDataItem = async (data, table) => {
         data.HNA,
       ];
 
-      let insertStmnt = await db.query(insertQuery, insertData);
-      console.log(insertStmnt, "insertStmnt");
+      await connectionToSimpi.query(insertQuery, insertData);
+      console.log(
+        `Outlet with INVENTORY_ITEM_ID ${itemInventoryItemId} inserted successfully!`
+      );
+    }
+    const checkExistDbDiskon = await connectionToWebDiskon.query(
+      `SELECT itemInventoryItemId FROM ${table} WHERE itemInventoryItemId = ?`,
+      [itemInventoryItemId]
+    );
+    console.log(checkExistDbDiskon, "hayaaa");
+    if (checkExistDbDiskon && checkExistDbDiskon[0].length > 0) {
+      // Outlet exists, so update the data in m_outlet
+      const updateQuery = `UPDATE ${table} SET
+      itemInventoryItemId = ?,
+      itemSupId = ?,
+      itemProduk = ?,
+      itemUom = ?,
+      itemSatuanKecil = ?,
+      itemClassProduk = ?,
+      itemIDprinc = ?,
+      itemClassName = ?
+            WHERE itemInventoryItemId = ?`;
+
+      const updateData = [
+        data.INVENTORY_ITEM_ID,
+        data.SUPLIER_ID,
+        data.PRODUK,
+        data.UOM,
+        data.SATUAN_KECIL,
+        data.CLASS_PROD,
+        data.PRINCIPAL,
+        data.CLASS_NAME,
+        itemInventoryItemId,
+      ];
+
+      await connectionToWebDiskon.query(updateQuery, updateData);
+      console.log(
+        `Outlet with INVENTORY_ITEM_ID ${itemInventoryItemId} updated successfully!`
+      );
+    } else {
+      // Outlet does not exist, so insert the data into m_outlet
+      const insertQuery = `INSERT INTO ${table} (
+        itemInventoryItemId,
+        itemCode,
+        itemSupId,
+        itemProduk,
+        itemUom,
+        itemSatuanKecil,
+        itemClassProduk,
+        itemIDprinc,
+        itemClassName
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+      const insertData = [
+        data.INVENTORY_ITEM_ID,
+        data.ITEM,
+        data.SUPLIER_ID,
+        data.PRODUK,
+        data.UOM,
+        data.SATUAN_KECIL,
+        data.CLASS_PROD,
+        data.PRINCIPAL,
+        data.CLASS_NAME,
+      ];
+
+      await connectionToWebDiskon.query(insertQuery, insertData);
       console.log(
         `Outlet with INVENTORY_ITEM_ID ${itemInventoryItemId} inserted successfully!`
       );
