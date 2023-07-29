@@ -177,13 +177,9 @@ const insertOrUpdateDataOutlet = async (data, table) => {
 
 const insertOrUpdateDataItem = async (data, table) => {
   try {
-    console.log(data, "data");
     const { connectionToWebDiskon, connectionToSimpi } =
       await setupConnections();
     const itemInventoryItemId = data.INVENTORY_ITEM_ID;
-    console.log(
-      `SELECT itemInventoryItemId FROM ${table} WHERE itemInventoryItemId = ?`
-    );
     // Check if the outlet already exists in the database based on the outletSiteNumber
     const checkExist = await connectionToSimpi.query(
       `SELECT itemInventoryItemId FROM ${table} WHERE itemInventoryItemId = ?`,

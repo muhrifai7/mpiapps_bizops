@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 import mysql from "mysql2/promise";
+import mssql from "mssql";
 
 async function setupConnections() {
   try {
@@ -22,7 +23,15 @@ async function setupConnections() {
 
     console.log("Connected to Simpi database!");
 
-    return { connectionToWebDiskon, connectionToSimpi };
+    const connectionToSqlServer = await mssql.connect({
+      user: process.env.SQL_DB_USER,
+      password: process.env.SQL_DB_PASS,
+      database: process.env.SQL_DB_NAME_TEST,
+      server: process.env.SQL_HOST,
+    });
+    console.log(connectionToSqlServer, "connectionToSqlServer");
+    console.log("Connected to Sql Server database!");
+    return { connectionToWebDiskon, connectionToSimpi, connectionToSqlServer };
   } catch (err) {
     console.error("Error connecting to databases:", err);
     throw err;
