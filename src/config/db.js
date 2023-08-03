@@ -46,7 +46,7 @@ export async function getPoolToSimpi() {
 export async function getPoolToSqlServer() {
   if (!poolToSqlServer) {
     try {
-      poolToSqlServer = new mssql.ConnectionPool({
+      poolToSqlServer = await new mssql.ConnectionPool({
         user: "sa",
         password: "P@ssw0rd.1",
         database: "DEV_MPI_TRAINING",
