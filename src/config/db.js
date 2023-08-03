@@ -52,8 +52,8 @@ export async function getPoolToSqlServer() {
         database: "DEV_MPI_TRAINING",
         server: "172.16.1.22",
       });
-
-      console.log("Connected to WebDiskon database!");
+      console.log(poolToSqlServer, "poolToSqlServer");
+      console.log("Connected to Sql Server database!");
     } catch (error) {
       console.error("Error connecting to the database:", error.message);
     }
