@@ -11,7 +11,7 @@ const sqlConfig = {
   user: "sa",
   password: "P@ssw0rd.1",
   database: "DEV_MPI_TRAINING",
-  server: "172.16.1.22",
+  server: "localhost",
   pool: {
     max: 10,
     min: 0,
