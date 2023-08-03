@@ -46,7 +46,7 @@ export async function getPoolToSimpi() {
 export async function getPoolToSqlServer() {
   if (!poolToSqlServer) {
     try {
-      poolToSqlServer = await mssql.createPool({
+      poolToSqlServer = mssql.createPool({
         user: "sa",
         password: "P@ssw0rd.1",
         database: "DEV_MPI_TRAINING",
