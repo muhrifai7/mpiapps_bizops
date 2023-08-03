@@ -37,7 +37,7 @@ const ext = ["csv"];
 // Insert to table rayon Db ke simpe_test
 const importDataRayonToSimpi = async () => {
   const poolToSimpi = await getPoolToSimpi();
-  const getPoolToSqlServer = await getPoolToSimpi();
+  const getPoolToSqlServer = await getPoolToSqlServer();
   console.log(getPoolToSqlServer, "getPoolToSqlServer");
   // select data rayon from sql
   const query = `SELECT a.szId AS kode_rayon
