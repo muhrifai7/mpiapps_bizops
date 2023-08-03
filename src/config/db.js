@@ -46,12 +46,21 @@ export async function getPoolToSimpi() {
 export async function getPoolToSqlServer() {
   if (!poolToSqlServer) {
     try {
-      poolToSqlServer = mssql.createPool({
+      poolToSqlServer = new mssql.ConnectionPool({
         user: "sa",
         password: "P@ssw0rd.1",
         database: "DEV_MPI_TRAINING",
         server: "172.16.1.22",
-      });
+        options: {
+          encrypt: true, // Set to true if you want to use encryption (for Azure SQL)
+        },
+        pool: {
+          max: 10, // Maximum number of connections in the pool
+          min: 0, // Minimum number of connections in the pool
+          idleTimeoutMillis: 30000, // How long a connection is allowed to be idle before it is closed (in milliseconds)
+        },
+      }).connect(); // Connect
+
       console.log(poolToSqlServer, "poolToSqlServer");
       console.log("Connected to Sql Server database!");
     } catch (error) {

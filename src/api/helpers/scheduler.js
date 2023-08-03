@@ -2,6 +2,7 @@
 import fs from "node:fs/promises";
 import path from "path";
 import schedule from "node-schedule";
+import mssql from "mssql";
 import { getPoolToSqlServer, getPoolToSimpi } from "../../config/db.js";
 
 const root_folder = process.env.SOURCE_FILE;
@@ -37,8 +38,9 @@ const ext = ["csv"];
 // Insert to table rayon Db ke simpe_test
 const importDataRayonToSimpi = async () => {
   const poolToSimpi = await getPoolToSimpi();
-  const getPoolToSqlServer = await getPoolToSqlServer();
-  console.log(getPoolToSqlServer, "getPoolToSqlServer");
+  const poolToSqlServer = await getPoolToSqlServer();
+  const request = new Request(poolToSqlServer);
+  console.log(poolToSqlServer, "poolToSqlServer");
   // select data rayon from sql
   const query = `SELECT a.szId AS kode_rayon
                   ,a.szName AS nama_rayon
@@ -53,8 +55,9 @@ const importDataRayonToSimpi = async () => {
                 ORDER BY a.szId`;
 
   try {
-    const rayonSqlResult = await getPoolToSqlServer.query(query);
-    const data = rayonSqlResult[0];
+    const result = await request().query(query);
+    console.log("Query result:", result.recordset);
+    const data = result[0];
     console.log(data, "data");
     const values = data.map((data) => [
       data.kode_rayon,
