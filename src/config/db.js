@@ -11,10 +11,10 @@ export async function getPoolToWebDiskon() {
   if (!poolToWebDiskon) {
     try {
       poolToWebDiskon = mysql.createPool({
-        host: process.env.DB_HOST,
-        user: process.env.DB_USER,
-        password: process.env.DB_PASS,
-        database: process.env.DB_NAME_DISKON,
+        host: "202.157.186.47",
+        user: "mpiapps_technical",
+        password: "Technical123",
+        database: "mpiapps_diskon_modifier_test",
         connectionLimit: 10, // Adjust the limit as per your requirements
       });
       console.log("Connected to WebDiskon database!");
@@ -29,10 +29,10 @@ export async function getPoolToSimpi() {
   if (!poolToSimpi) {
     try {
       poolToSimpi = mysql.createPool({
-        host: process.env.DB_HOST,
-        user: process.env.DB_USER,
-        password: process.env.DB_PASS,
-        database: process.env.DB_NAME,
+        host: "202.157.186.47",
+        user: "mpiapps_technical",
+        password: "Technical123",
+        database: "mpiapps_simpi_test",
         connectionLimit: 10, // Adjust the limit as per your requirements
       });
       console.log("Connected to Simpi database!");
@@ -47,10 +47,10 @@ export async function getPoolToSqlServer() {
   if (!poolToSqlServer) {
     try {
       poolToSqlServer = await mssql.createPool({
-        user: process.env.SQL_DB_USER,
-        password: process.env.SQL_DB_PASS,
-        database: process.env.SQL_DB_NAME_TEST,
-        server: process.env.SQL_HOST,
+        user: "sa",
+        password: "P@ssw0rd.1",
+        database: "DEV_MPI_TRAINING",
+        server: "172.16.1.22",
       });
 
       console.log("Connected to WebDiskon database!");
