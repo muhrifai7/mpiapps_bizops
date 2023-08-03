@@ -1,8 +1,8 @@
-import setupConnections from "../../../config/db.js";
+import { getPoolToSqlServer, getPoolToSimpi } from "../../../config/db.js";
 
 export default async (req, res) => {
   try {
-    const [results, fields] = await connectionToSimpi.query(
+    const [results, fields] = await getPoolToSimpi.query(
       "SELECT * FROM `m_outlet` WHERE `id` = 1"
     );
     return res.json({ status: true, data: results });
