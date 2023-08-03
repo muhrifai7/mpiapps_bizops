@@ -51,7 +51,6 @@ export async function getPoolToSqlServer() {
         password: "P@ssw0rd.1",
         database: "DEV_MPI_TRAINING",
         server: "172.16.1.22",
-        port: 1433, // Make sure to include the port number for the SQL Server instance
         options: {
           encrypt: true, // Set to true if you want to use encryption (for Azure SQL)
         },
