@@ -1,91 +1,80 @@
-// const directory = "/src/fonts";
-import fs from "node:fs/promises";
-import path from "path";
 import schedule from "node-schedule";
 import mssql from "mssql";
-import { getPoolToSqlServer, getPoolToSimpi } from "../../config/db.js";
+import { configSqlServer, getPoolToSimpi } from "../../config/db.js";
 
-const root_folder = process.env.SOURCE_FILE;
-const processedpath = process.env.PROCCESSED_FILE;
-const success_folder = `${root_folder}/${processedpath}`;
-
-const ext = ["csv"];
-
-// function ini jalan setiap jam 1 pagi, untuk mengapus file dengan masa 1 hari
-// const removeOldFile = schedule.scheduleJob("*/1 * * * *", async () => {
-//   const second = 60 * 60 * 30;
-//   const currentTime = Math.floor(new Date().getTime() / 1000);
-//   const files = Array.from(await fs.readdir(success_folder)).filter((file) => {
-//     return ext.indexOf(file.split(".").at(-1)) !== -1;
-//   });
-//   for (const file of files) {
-//     const filePath = path.join(success_folder, file);
-//     const stats = await fs.stat(filePath); // age of file
-//     const birthTime = Math.floor(stats.ctimeMs / 1000);
-//     if (currentTime - birthTime > second) {
-//       console.log(`Remove ${filePath} file success!`);
-//       fs.rm(filePath);
-//     }
-//   }
-//   console.log(`This runs at 00:00AM every day, Clean data on ${processedpath}`);
-// });
-
-// schedule.scheduleJob("*/1 * * * *", async () => {
-//   const resRayon = await importDataRayonToSimpi();
-//   console.log(resRayon, "resRayon");
-// });
+schedule.scheduleJob("0 1 * * *", async () => {
+  console.log("schedule run every dat at 1 am start");
+  const resRayon = await importDataRayonToSimpi();
+  console.log(resRayon, "resRayon");
+});
 
 // Insert to table rayon Db ke simpe_test
 const importDataRayonToSimpi = async () => {
+  const batchSize = 1000;
   const poolToSimpi = await getPoolToSimpi();
-  const poolToSqlServer = await getPoolToSqlServer();
-  const request = new Request(poolToSqlServer);
-  console.log(poolToSqlServer, "poolToSqlServer");
+  await mssql.connect(configSqlServer);
   // select data rayon from sql
-  const query = `SELECT a.szId AS kode_rayon
-                  ,a.szName AS nama_rayon
-                  ,a.szEmployeeId AS kode_sales
-                  ,c.szName AS nama_sales
-                  ,b.szCustomerId AS kode_customer
-                  ,d.szName AS nama_customer
+  const query = `SELECT
+                  a.szId AS kode_rayon,
+                  a.szName AS nama_rayon,
+                  a.szEmployeeId AS kode_sales,
+                  c.szName AS nama_sales,
+                  b.szCustomerId AS kode_customer,
+                  d.szName AS nama_customer
                 FROM DMS_SD_Route a
                 INNER JOIN DMS_SD_RouteItem b ON a.szId = b.szId
                 LEFT JOIN DMS_PI_Employee c ON a.szEmployeeId = c.szId
                 LEFT JOIN DMS_AR_Customer d ON b.szCustomerId = d.szId
-                ORDER BY a.szId`;
+                ORDER BY a.szId;
+                `;
 
   try {
-    const result = await request().query(query);
-    console.log("Query result:", result.recordset);
-    const data = result[0];
-    console.log(data, "data");
-    const values = data.map((data) => [
-      data.kode_rayon,
-      data.nama_rayon,
-      data.kode_sales,
-      data.nama_sales,
-      data.kode_customer,
-      data.nama_customer,
-    ]);
-    // query insert only
-    const insertQuery = `
-    INSERT INTO rayon (kode_rayon, nama_rayon, kode_sales,nama_sales,kode_customer,nama_customer)
-    VALUES ?
-    ON DUPLICATE KEY UPDATE
-      kode_rayon = VALUES(kode_rayon),
-      nama_rayon = VALUES(nama_rayon),
-      kode_sales = VALUES(kode_sales),
-      nama_sales = VALUES(nama_sales),
-      kode_customer = VALUES(kode_customer),
-      nama_customer = VALUES(nama_customer);
-  `;
+    const result = await mssql.query(query);
+    const data = result.recordset;
+    if (data.length > 0) {
+      await poolToSimpi.query("START TRANSACTION");
+      const truncateQuery = `TRUNCATE TABLE RAYON`;
+      await poolToSimpi.query(truncateQuery);
+      const chunks = [];
+      for (let i = 0; i < data.length; i += batchSize) {
+        chunks.push(data.slice(i, i + batchSize));
+      }
 
-    const execQuery = await poolToSimpi.query(insertQuery, [values]);
-    console.log("row(s) affected.", execQuery[0]?.affectedRows);
-    console.log("info =>", execQuery[0]?.info);
+      for (const chunk of chunks) {
+        const values = chunk.map((data) => [
+          data?.kode_rayon,
+          data?.nama_rayon,
+          data?.kode_sales,
+          data?.nama_sales,
+          data?.kode_customer,
+          data?.nama_customer,
+        ]);
+
+        // query insert only
+        const insertQuery = `
+          INSERT INTO rayon (kode_rayon, nama_rayon, kode_sales, nama_sales, kode_customer, nama_customer)
+          VALUES ?
+          ON DUPLICATE KEY UPDATE
+            kode_rayon = VALUES(kode_rayon),
+            nama_rayon = VALUES(nama_rayon),
+            kode_sales = VALUES(kode_sales),
+            nama_sales = VALUES(nama_sales),
+            kode_customer = VALUES(kode_customer),
+            nama_customer = VALUES(nama_customer);
+        `;
+
+        const execQuery = await poolToSimpi.query(insertQuery, [values]);
+        console.log(
+          "Batch inserted. Row(s) affected:",
+          execQuery[0]?.affectedRows
+        );
+      }
+
+      console.log("All batches inserted successfully.");
+      await poolToSimpi.query("COMMIT");
+    }
   } catch (error) {
+    await poolToSimpi.query("ROLLBACK");
     console.error("Error executing query:", error);
   }
 };
-
-console.log(await importDataRayonToSimpi());

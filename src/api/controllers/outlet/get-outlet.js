@@ -1,4 +1,4 @@
-import { getPoolToSqlServer, getPoolToSimpi } from "../../../config/db.js";
+import { getPoolToSimpi } from "../../../config/db.js";
 
 export default async (req, res) => {
   try {

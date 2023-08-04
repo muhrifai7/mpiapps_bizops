@@ -43,30 +43,22 @@ export async function getPoolToSimpi() {
   return poolToSimpi;
 }
 
-export async function getPoolToSqlServer() {
-  if (!poolToSqlServer) {
-    try {
-      poolToSqlServer = await new mssql.ConnectionPool({
-        user: "sa",
-        password: "P@ssw0rd.1",
-        database: "DEV_MPI_TRAINING",
-        server: "172.16.1.22",
-        options: {
-          encrypt: true, // Set to true if you want to use encryption (for Azure SQL)
-        },
-        pool: {
-          max: 10, // Maximum number of connections in the pool
-          min: 0, // Minimum number of connections in the pool
-          idleTimeoutMillis: 30000, // How long a connection is allowed to be idle before it is closed (in milliseconds)
-        },
-      }).connect(); // Connect
+export const configSqlServerLocal = {
+  user: "sa",
+  password: "v6khN0n2KO14g4CgYK",
+  server: "localhost",
+  database: "DEV_MPI_TRAINING", // Replace with the actual name of your database
+  options: {
+    trustServerCertificate: true, // For development purposes only. Set to true for self-signed certificates in development environment.
+  },
+};
 
-      console.log(poolToSqlServer, "poolToSqlServer");
-      console.log("Connected to Sql Server database!");
-    } catch (error) {
-      console.error("Error connecting to the database:", error.message);
-    }
-
-    return poolToSqlServer;
-  }
-}
+export const configSqlServer = {
+  user: "sa",
+  password: "P@ssw0rd.1",
+  server: "172.16.1.22",
+  database: "DEV_MPI_TRAINING", // Replace with the actual name of your database
+  options: {
+    trustServerCertificate: true, // For development purposes only. Set to true for self-signed certificates in development environment.
+  },
+};
