@@ -53,20 +53,10 @@ export const configSqlServerLocal = {
   },
 };
 
-// export const configSqlServer = {
-//   user: "sa",
-//   password: "P@ssw0rd.1",
-//   server: "172.16.1.22",
-//   database: "DEV_MPI_TRAINING", // Replace with the actual name of your database
-//   options: {
-//     trustServerCertificate: true, // For development purposes only. Set to true for self-signed certificates in development environment.
-//   },
-// };
-
 export const configSqlServer = {
   user: "sa",
   password: "P@ssw0rd.1",
-  server: "localhost",
+  server: "172.16.1.22",
   database: "DEV_MPI_TRAINING", // Replace with the actual name of your database
   options: {
     trustServerCertificate: true, // For development purposes only. Set to true for self-signed certificates in development environment.
