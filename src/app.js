@@ -28,7 +28,7 @@ app.listen(port, () => {
     console.log("run test");
     // make sure that any items are correctly URL encoded in the connection string
     await mssql.connect(configSqlServer);
-    const result = await mssql.query`select * from DMS_SD_Route where szId = 1`;
+    const result = await mssql.query`select * from DMS_SD_Route`;
     console.log("test", result);
   } catch (err) {
     console.log(err, "err");
