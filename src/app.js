@@ -3,7 +3,7 @@ import routes from "./api/routes/index.js";
 import dotenv from "dotenv";
 import mssql from "mssql";
 
-import { configSqlServer, configSqlServerLocal } from "./config/db.js";
+import { configSqlServer, getPoolToSimpi } from "./config/db.js";
 
 dotenv.config();
 const app = express();
