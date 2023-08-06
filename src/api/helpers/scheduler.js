@@ -78,3 +78,8 @@ const importDataRayonToSimpi = async () => {
     console.error("Error executing query:", error);
   }
 };
+
+(async () => {
+  const resRayon = await importDataRayonToSimpi();
+  console.log(resRayon, "resRayon");
+})();
