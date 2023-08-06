@@ -11,7 +11,6 @@ schedule.scheduleJob("0 1 * * *", async () => {
 // Insert to table rayon Db ke simpe_test
 const importDataRayonToSimpi = async () => {
   const batchSize = 1000;
-  const poolToSimpi = await getPoolToSimpi();
   await mssql.connect(configSqlServer);
   // select data rayon from sql
   const query = `SELECT
@@ -62,6 +61,7 @@ const importDataRayonToSimpi = async () => {
             kode_customer = VALUES(kode_customer),
             nama_customer = VALUES(nama_customer);
         `;
+        const poolToSimpi = await getPoolToSimpi();
 
         const execQuery = await poolToSimpi.query(insertQuery, [values]);
         console.log(

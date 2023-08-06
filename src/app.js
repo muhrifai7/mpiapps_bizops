@@ -42,9 +42,11 @@ const importDataRayonToSimpi = async () => {
                 ORDER BY a.szId;
                 `;
 
+  const poolToSimpi = await getPoolToSimpi();
   try {
     const result = await mssql.query(query);
     const data = result.recordset;
+
     if (data.length > 0) {
       await poolToSimpi.query("START TRANSACTION");
       const truncateQuery = `TRUNCATE TABLE RAYON`;
@@ -76,7 +78,6 @@ const importDataRayonToSimpi = async () => {
             kode_customer = VALUES(kode_customer),
             nama_customer = VALUES(nama_customer);
         `;
-        const poolToSimpi = await getPoolToSimpi();
         const execQuery = await poolToSimpi.query(insertQuery, [values]);
         console.log(
           "Batch inserted. Row(s) affected:",
