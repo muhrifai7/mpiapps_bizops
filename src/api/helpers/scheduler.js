@@ -11,7 +11,6 @@ schedule.scheduleJob("0 1 * * *", async () => {
 // Insert to table rayon Db ke simpe_test
 const importDataRayonToSimpi = async () => {
   const batchSize = 1000;
-  const poolToSimpi = await getPoolToSimpi();
   await mssql.connect(configSqlServer);
   // select data rayon from sql
   const query = `SELECT
@@ -30,6 +29,9 @@ const importDataRayonToSimpi = async () => {
 
   try {
     const result = await mssql.query(query);
+    console.log(result, "result");
+    const poolToSimpi = await getPoolToSimpi();
+
     const data = result.recordset;
     if (data.length > 0) {
       await poolToSimpi.query("START TRANSACTION");
@@ -74,7 +76,7 @@ const importDataRayonToSimpi = async () => {
       await poolToSimpi.query("COMMIT");
     }
   } catch (error) {
-    await poolToSimpi.query("ROLLBACK");
+    // await poolToSimpi.query("ROLLBACK");
     console.error("Error executing query:", error);
   }
 };
