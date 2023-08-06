@@ -23,6 +23,16 @@ app.listen(port, () => {
   console.log(`Server is running on ${process.env.ENV}:${port}`);
 });
 
+(async () => {
+  try {
+    console.log("run test");
+    const poolToSimpi = await getPoolToSimpi();
+    const result = await poolToSimpi.query(`select * from rayon`);
+    console.log("test", result);
+  } catch (err) {
+    console.log(err, "err");
+  }
+})();
 // Insert to table rayon Db ke simpe_test
 const importDataRayonToSimpi = async () => {
   const batchSize = 1000;
@@ -46,7 +56,7 @@ const importDataRayonToSimpi = async () => {
   try {
     const result = await mssql.query(query);
     const data = result.recordset;
-
+    console.log(data, "dadads");
     if (data.length > 0) {
       await poolToSimpi.query("START TRANSACTION");
       const truncateQuery = `TRUNCATE TABLE RAYON`;
