@@ -1,9 +1,6 @@
 import express from "express";
 import routes from "./api/routes/index.js";
 import dotenv from "dotenv";
-import mssql from "mssql";
-
-import { configSqlServer, getPoolToSimpi } from "./config/db.js";
 
 dotenv.config();
 const app = express();
@@ -20,16 +17,5 @@ app.use(express.json());
 app.use("/api", routes);
 // Start the server
 app.listen(port, () => {
-  console.log(`Server is running on ${process.env.ENV}:${port}`);
+  console.log(`Server is running on prod :${port}`);
 });
-
-(async () => {
-  try {
-    console.log("run test");
-    const poolToSimpi = await getPoolToSimpi();
-    const result = await poolToSimpi.query(`select * from rayon`);
-    console.log("test", result);
-  } catch (err) {
-    console.log(err, "err");
-  }
-})();

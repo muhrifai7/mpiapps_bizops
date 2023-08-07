@@ -35,7 +35,7 @@ const importDataRayonToSimpi = async () => {
     const data = result.recordset;
     if (data.length > 0) {
       await poolToSimpi.query("START TRANSACTION");
-      const truncateQuery = `TRUNCATE TABLE RAYON`;
+      const truncateQuery = `TRUNCATE TABLE rayon`;
       await poolToSimpi.query(truncateQuery);
       const chunks = [];
       for (let i = 0; i < data.length; i += batchSize) {
