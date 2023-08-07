@@ -5,6 +5,7 @@ import mysql from "mysql2/promise";
 
 let poolToWebDiskon = null;
 let poolToSimpi = null;
+let poolToSimpiTest = null;
 let poolToSqlServer = null;
 
 export async function getPoolToWebDiskon() {
@@ -27,6 +28,25 @@ export async function getPoolToWebDiskon() {
 
 export async function getPoolToSimpi() {
   if (!poolToSimpi) {
+    try {
+      poolToSimpi = mysql.createPool({
+        host: "202.157.186.47",
+        user: "mpiapps_technical",
+        password: "Technical123",
+        database: "mpiapps_simpi",
+        connectionLimit: 10, // Adjust the limit as per your requirements
+        port: 3306,
+      });
+      console.log("Connected to Simpi database!");
+    } catch (error) {
+      console.error("Error connecting to the database:", error.message);
+    }
+  }
+  return poolToSimpi;
+}
+
+export async function getPoolToSimpiTest() {
+  if (!poolToSimpiTest) {
     try {
       poolToSimpi = mysql.createPool({
         host: "202.157.186.47",

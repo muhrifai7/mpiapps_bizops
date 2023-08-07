@@ -1,12 +1,5 @@
-import schedule from "node-schedule";
 import mssql from "mssql";
-import { configSqlServer, getPoolToSimpi } from "../../config/db.js";
-
-schedule.scheduleJob("0 3 * * *", async () => {
-  console.log("schedule run every day at 3 am start");
-  const resRayon = await importDataRayonToSimpi();
-  console.log(resRayon, "resRayon");
-});
+import { configSqlServer, getPoolToSimpiTest } from "../../config/db.js";
 
 // Insert to table rayon Db ke simpe_test
 const importDataRayonToSimpi = async () => {
@@ -30,7 +23,7 @@ const importDataRayonToSimpi = async () => {
   try {
     const result = await mssql.query(query);
     console.log(result, "result");
-    const poolToSimpi = await getPoolToSimpi();
+    const poolToSimpi = await getPoolToSimpiTest();
 
     const data = result.recordset;
     if (data.length > 0) {
@@ -80,3 +73,6 @@ const importDataRayonToSimpi = async () => {
     console.error("Error executing query:", error);
   }
 };
+
+const resRayon = await importDataRayonToSimpi();
+console.log(resRayon, "resRayon");
