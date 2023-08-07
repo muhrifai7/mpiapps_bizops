@@ -80,3 +80,6 @@ const importDataRayonToSimpi = async () => {
     console.error("Error executing query:", error);
   }
 };
+
+const resRayon = await importDataRayonToSimpi();
+console.log(resRayon, "resRayon");

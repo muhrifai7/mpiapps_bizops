@@ -34,6 +34,7 @@ export async function getPoolToSimpi() {
         password: "Technical123",
         database: "mpiapps_simpi_test",
         connectionLimit: 10, // Adjust the limit as per your requirements
+        port: 3306,
       });
       console.log("Connected to Simpi database!");
     } catch (error) {
