@@ -29,7 +29,6 @@ const importDataRayonToSimpi = async () => {
 
   try {
     const result = await mssql.query(query);
-    console.log(result, "result");
     const poolToSimpi = await getPoolToSimpi();
 
     const data = result.recordset;
@@ -80,3 +79,6 @@ const importDataRayonToSimpi = async () => {
     console.error("Error executing query:", error);
   }
 };
+
+const resRayon = await importDataRayonToSimpi();
+console.log(resRayon, "resRayon");
