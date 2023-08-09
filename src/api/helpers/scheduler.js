@@ -1,12 +1,6 @@
 import schedule from "node-schedule";
 import mssql from "mssql";
-import { configSqlServer, getPoolToSimpi } from "../../config/db.js";
-
-schedule.scheduleJob("0 3 * * *", async () => {
-  console.log("schedule run every day at 3 am start");
-  const resRayon = await importDataRayonToSimpi();
-  console.log(resRayon, "resRayon");
-});
+import { configSqlServer, getPoolToSimpiTest } from "../../config/db.js";
 
 // Insert to table rayon Db ke simpe_test
 const importDataRayonToSimpi = async () => {
@@ -27,9 +21,9 @@ const importDataRayonToSimpi = async () => {
                 ORDER BY a.szId;
                 `;
 
+  const poolToSimpi = await getPoolToSimpiTest();
   try {
     const result = await mssql.query(query);
-    const poolToSimpi = await getPoolToSimpi();
 
     const data = result.recordset;
     if (data.length > 0) {
@@ -75,7 +69,126 @@ const importDataRayonToSimpi = async () => {
       await poolToSimpi.query("COMMIT");
     }
   } catch (error) {
-    // await poolToSimpi.query("ROLLBACK");
+    await poolToSimpi.query("ROLLBACK");
     console.error("Error executing query:", error);
   }
 };
+
+// Insert to table pricelist Db ke simpe_test
+const importDataPriceListToSimpi = async () => {
+  const batchSize = 1000;
+  await mssql.connect(configSqlServer);
+  // select data rayon from sql
+  const query = `select * from dms_sd_pricecatalog a
+                  inner join DMS_SD_PriceCatalogItemCombinationValue b on a.szid = b.szid
+                  inner join DMS_SD_PriceCatalogItemCombinationValueItem c on b.szid = c.szid
+                  WHERE c.dtmStartDate <=  GETDATE()
+                  AND c.dtmEndDate >=  GETDATE()
+                `;
+
+  const poolToSimpi = await getPoolToSimpiTest();
+  try {
+    const result = await mssql.query(query);
+
+    const data = result.recordset;
+    console.log(data, "dataa");
+    if (data.length > 0) {
+      await poolToSimpi.query("START TRANSACTION");
+      const truncateQuery = `TRUNCATE TABLE price_list`;
+      await poolToSimpi.query(truncateQuery);
+      const chunks = [];
+      for (let i = 0; i < data.length; i += batchSize) {
+        chunks.push(data.slice(i, i + batchSize));
+      }
+
+      for (const chunk of chunks) {
+        const values = chunk.map((data) => [
+          data?.iInternalId,
+          data?.iId,
+          data?.szId,
+          data?.szName,
+          data?.szDescription,
+          data?.szCombinationId,
+          data?.szCompanyId,
+          data?.dtmValidFrom,
+          data?.dtmValidTo,
+          data?.intPriority,
+          data?.bActive,
+          data?.szUserCreatedId,
+          data?.szUserUpdatedId,
+          data?.dtmCreated,
+          data?.dtmLastUpdated,
+          data?.szStatusSubmitFusion,
+          data?.iInternalId_1,
+          data?.iId_1,
+          data?.szId_1,
+          data?.intItemNumber,
+          data?.szCombinationId_1,
+          data?.szCombinationValue,
+          data?.szCombinationValueNm,
+          data?.iInternalId_2,
+          data?.iId_2,
+          data?.szId_2,
+          data?.intItemNumber_1,
+          data?.intItemNumber2,
+          data?.szProductId,
+          data?.decMinQty,
+          data?.bIncludeTax,
+          data?.decPrice,
+          data?.szUomId,
+          data?.intLine,
+          data?.dtmStartDate,
+          data?.dtmEndDate,
+          data?.szPriceListId,
+          data?.szPriceListItemId,
+          data?.szPriceListChargeId,
+        ]);
+
+        // query insert only
+        const insertQuery = `
+          INSERT INTO your_table_name (
+              iInternalId, iId, szId, szName, szDescription, szCombinationId, szCompanyId,
+              dtmValidFrom, dtmValidTo, intPriority, bActive, szUserCreatedId, szUserUpdatedId,
+              dtmCreated, dtmLastUpdated, szStatusSubmitFusion,
+              iInternalId_1, iId_1, szId_1, intItemNumber, szCombinationId_1,
+              szCombinationValue, szCombinationValueNm,
+              iInternalId_2, iId_2, szId_2, intItemNumber_1, intItemNumber2,
+              szProductId, decMinQty, bIncludeTax, decPrice, szUomId,
+              intLine, dtmStartDate, dtmEndDate, szPriceListId,
+              szPriceListItemId, szPriceListChargeId
+          )
+          VALUES (
+              ?, ?, ?, ?, ?, ?, ?,
+              ?, ?, ?, ?, ?, ?,
+              ?, ?, ?,
+              ?, ?, ?, ?, ?,
+              ?, ?,
+              ?, ?, ?, ?, ?,
+              ?, ?, ?, ?, ?,
+              ?, ?, ?, ?,
+              ?, ?
+          );
+          `;
+
+        const execQuery = await poolToSimpi.query(insertQuery, [values]);
+        console.log(
+          "Batch inserted. Row(s) affected:",
+          execQuery[0]?.affectedRows
+        );
+      }
+
+      console.log("All batches inserted successfully.");
+      await poolToSimpi.query("COMMIT");
+    }
+  } catch (error) {
+    await poolToSimpi.query("ROLLBACK");
+    console.error("Error executing query:", error);
+  }
+};
+
+schedule.scheduleJob("0 3 * * *", async () => {
+  console.log("schedule run every day at 3 am start");
+  const resRayon = await importDataRayonToSimpi();
+  console.log(resRayon, "resRayon");
+});
+console.log(importDataPriceListToSimpi(), "running");
