@@ -79,7 +79,12 @@ const importDataPriceListToSimpi = async () => {
   const batchSize = 1000;
   await mssql.connect(configSqlServer);
   // select data rayon from sql
-  const query = `select * from dms_sd_pricecatalog a
+  const query = `select a.iInternalId as iInternalIdA, a.iId as iIdA, a.szId as szIdA, a.szName, a.szDescription, a.szCombinationId as szCombinationIdA, a.szCompanyId, a.dtmValidFrom, a.dtmValidTo,
+                  a.intPriority, a.bActive, a.szUserCreatedId, a.szUserUpdatedId, a.dtmCreated, a.dtmLastUpdated, a.szStatusSubmitFusion,
+                  b.iInternalId as iInternalIdB, b.iId as iIdB, b.szId as szIdC, b.intItemNumber as intItemNumberB, b.szCombinationId, b.szCombinationValue, b.szCombinationValueNm,
+                  c.iInternalId as iInternalIdB, c.iId as iIdC, c.szId as szIdC, c.intItemNumber as intItemNumberC, c.intItemNumber2, c.szProductId, c.decMinQty, c.bIncludeTax, c.decPrice, c.szUomId,
+                  c.intLine, c.dtmStartDate, c.dtmEndDate, c.szPriceListId, c.szPriceListItemId, c.szPriceListChargeId
+                  from dms_sd_pricecatalog a
                   inner join DMS_SD_PriceCatalogItemCombinationValue b on a.szid = b.szid
                   inner join DMS_SD_PriceCatalogItemCombinationValueItem c on b.szid = c.szid
                   WHERE c.dtmStartDate <=  GETDATE()
@@ -89,7 +94,6 @@ const importDataPriceListToSimpi = async () => {
   const poolToSimpi = await getPoolToSimpiTest();
   try {
     const result = await mssql.query(query);
-
     const data = result.recordset;
     console.log(data, "dataa");
     if (data.length > 0) {
@@ -146,7 +150,7 @@ const importDataPriceListToSimpi = async () => {
 
         // query insert only
         const insertQuery = `
-          INSERT INTO your_table_name (
+          INSERT INTO price_list (
               iInternalId, iId, szId, szName, szDescription, szCombinationId, szCompanyId,
               dtmValidFrom, dtmValidTo, intPriority, bActive, szUserCreatedId, szUserUpdatedId,
               dtmCreated, dtmLastUpdated, szStatusSubmitFusion,
