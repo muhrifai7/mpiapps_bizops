@@ -1,6 +1,6 @@
 import schedule from "node-schedule";
 import mssql from "mssql";
-import { configSqlServer, getPoolToSimpiTest } from "../../config/db.js";
+import { configSqlServer, getPoolToSimpi } from "../../config/db.js";
 
 // Insert to table rayon Db ke simpe_test
 const importDataRayonToSimpi = async () => {
@@ -21,7 +21,7 @@ const importDataRayonToSimpi = async () => {
                 ORDER BY a.szId;
                 `;
 
-  const poolToSimpi = await getPoolToSimpiTest();
+  const poolToSimpi = await getPoolToSimpi();
   try {
     const result = await mssql.query(query);
 
@@ -125,11 +125,10 @@ const importDataPriceListToSimpi = async () => {
                     AND c.dtmEndDate >= GETDATE()
                 `;
 
-  const poolToSimpi = await getPoolToSimpiTest();
+  const poolToSimpi = await getPoolToSimpi();
   try {
     const result = await mssql.query(query);
     const data = result.recordset;
-    console.log(data, "data");
     if (data.length > 0) {
       await poolToSimpi.query("START TRANSACTION");
       const truncateQuery = `TRUNCATE TABLE price_list`;
@@ -238,8 +237,6 @@ const importDataPriceListToSimpi = async () => {
           );
           `;
         const flattenedValues = values.flat();
-
-        console.log([flattenedValues], "values");
         const execQuery = await poolToSimpi.query(insertQuery, flattenedValues);
         console.log(
           "Batch inserted. Row(s) affected:",
@@ -259,6 +256,6 @@ const importDataPriceListToSimpi = async () => {
 schedule.scheduleJob("0 3 * * *", async () => {
   console.log("schedule run every day at 3 am start");
   const resRayon = await importDataRayonToSimpi();
-  console.log(resRayon, "resRayon");
+  const resPriceList = await importDataPriceListToSimpi();
+  console.log(resRayon, "resRayon", resPriceList);
 });
-console.log(importDataPriceListToSimpi(), "running");
