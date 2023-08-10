@@ -244,7 +244,7 @@ const importDataPriceListToSimpi = async () => {
         );
       }
 
-      console.log("All batches inserted successfully.");
+      console.log("All batches price list inserted successfully.");
       await poolToSimpi.query("COMMIT");
     }
   } catch (error) {

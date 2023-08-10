@@ -128,6 +128,7 @@ const importDataPriceListToSimpi = async () => {
   try {
     const result = await mssql.query(query);
     const data = result.recordset;
+    console.log(data, "dataa");
     if (data.length > 0) {
       await poolToSimpi.query("START TRANSACTION");
       const truncateQuery = `TRUNCATE TABLE price_list`;
@@ -235,15 +236,15 @@ const importDataPriceListToSimpi = async () => {
               ?, ?
           );
           `;
-        const flattenedValues = values.flat();
-        const execQuery = await poolToSimpi.query(insertQuery, flattenedValues);
+        // const flattenedValues = values.flat();
+        const execQuery = await poolToSimpi.query(insertQuery, [values]);
         console.log(
           "Batch inserted. Row(s) affected:",
           execQuery[0]?.affectedRows
         );
       }
 
-      console.log("All batches inserted successfully.");
+      console.log("All batches price list inserted successfully.");
       await poolToSimpi.query("COMMIT");
     }
   } catch (error) {
