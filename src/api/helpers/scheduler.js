@@ -125,7 +125,7 @@ const importDataPriceListToSimpi = async () => {
                     AND c.dtmEndDate >= GETDATE()
                 `;
 
-  const poolToSimpi = await getPoolToSimpiTest();
+  const poolToSimpi = await getPoolToSimpi();
   try {
     const result = await mssql.query(query);
     const data = result.recordset;
@@ -289,3 +289,6 @@ schedule.scheduleJob("0 3 * * *", async () => {
   const resPriceList = await importDataPriceListToSimpi();
   console.log(resRayon, "resRayon", resPriceList);
 });
+const resPriceList = await importDataPriceListToSimpi();
+
+console.log(resPriceList, "resPriceList");

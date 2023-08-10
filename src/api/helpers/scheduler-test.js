@@ -128,7 +128,6 @@ const importDataPriceListToSimpi = async () => {
   try {
     const result = await mssql.query(query);
     const data = result.recordset;
-    console.log(data, "data");
     if (data.length > 0) {
       await poolToSimpi.query("START TRANSACTION");
       const truncateQuery = `TRUNCATE TABLE price_list`;
