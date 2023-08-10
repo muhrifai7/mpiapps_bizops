@@ -224,19 +224,48 @@ const importDataPriceListToSimpi = async () => {
           ,szPriceListItemId
           ,szPriceListChargeId
           )
-          VALUES (
-              ?, ?, ?, ?, ?, ?, ?,
-              ?, ?, ?, ?, ?, ?,
-              ?, ?, ?,
-              ?, ?, ?, ?, ?,
-              ?, ?,
-              ?, ?, ?, ?, ?,
-              ?, ?, ?, ?, ?,
-              ?, ?, ?, ?,
-              ?, ?
-          );
+          VALUES ?
+          ON DUPLICATE KEY UPDATE
+          iInternalId = VALUES(iInternalId),
+          iId = VALUES(iId)
+          ,szId = VALUES(szId)
+          ,szName = VALUES(szName)
+          ,szDescription = VALUES(szDescription)
+          ,szCombinationId = VALUES(szCombinationId)
+          ,szCompanyId = VALUES(szCompanyId)
+          ,dtmValidFrom = VALUES(dtmValidFrom)
+          ,dtmValidTo = VALUES(dtmValidTo)
+          ,intPriority = VALUES(intPriority)
+          ,bActive = VALUES(bActive)
+          ,szUserCreatedId = VALUES(szUserCreatedId)
+          ,szUserUpdatedId = VALUES(szUserUpdatedId)
+          ,dtmCreated = VALUES(dtmCreated)
+          ,dtmLastUpdated = VALUES(dtmLastUpdated)
+          ,szStatusSubmitFusion = VALUES(szStatusSubmitFusion)
+          ,iInternalId_1 = VALUES(iInternalId_1)
+          ,iId_1 = VALUES(iId_1)
+          ,szId_1 = VALUES(szId_1)
+          ,intItemNumber = VALUES(intItemNumber)
+          ,szCombinationId_1 = VALUES(szCombinationId_1)
+          ,szCombinationValue = VALUES(szCombinationValue)
+          ,szCombinationValueNm = VALUES(szCombinationValueNm)
+          ,iInternalId_2 = VALUES(iInternalId_2)
+          ,iId_2 = VALUES(iId_2)
+          ,szId_2 = VALUES(szId_2)
+          ,intItemNumber_1 = VALUES(intItemNumber_1)
+          ,intItemNumber2 = VALUES(intItemNumber2)
+          ,szProductId = VALUES(szProductId)
+          ,decMinQty = VALUES(decMinQty)
+          ,bIncludeTax = VALUES(bIncludeTax)
+          ,decPrice = VALUES(decPrice)
+          ,szUomId = VALUES(szUomId)
+          ,intLine = VALUES(intLine)
+          ,dtmStartDate = VALUES(dtmStartDate)
+          ,dtmEndDate = VALUES(dtmEndDate)
+          ,szPriceListId = VALUES(szPriceListId)
+          ,szPriceListItemId = VALUES(szPriceListItemId)
+          ,szPriceListChargeId = VALUES(szPriceListChargeId)
           `;
-        // const flattenedValues = values.flat();
         const execQuery = await poolToSimpi.query(insertQuery, [values]);
         console.log(
           "Batch inserted. Row(s) affected:",
