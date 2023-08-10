@@ -289,6 +289,3 @@ schedule.scheduleJob("0 3 * * *", async () => {
   const resPriceList = await importDataPriceListToSimpi();
   console.log(resRayon, "resRayon", resPriceList);
 });
-const resPriceList = await importDataPriceListToSimpi();
-
-console.log(resPriceList, "resPriceList");
