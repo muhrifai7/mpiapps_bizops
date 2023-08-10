@@ -78,7 +78,7 @@ const importDataPriceListToSimpi = async () => {
   const batchSize = 1000;
   await mssql.connect(configSqlServer);
   // select data rayon from sql
-  const query = `SELECT TOP 10 a.iInternalId AS iInternalId
+  const query = `SELECT a.iInternalId AS iInternalId
                     ,a.iId AS iIdA
                     ,a.szId AS szIdA
                     ,a.szName
