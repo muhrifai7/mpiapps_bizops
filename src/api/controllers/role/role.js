@@ -1,12 +1,11 @@
 import { getPoolToBizops } from "../../../config/db.js";
 
 export default async (req, res) => {
+  const pool = await getPoolToBizops();
   try {
-    const pool = await getPoolToBizops();
-    const query = "SELECT * FROM `m_outlet` WHERE `id` = 1";
+    const query = "SELECT * FROM role";
     const execQuery = await pool.query(query);
-    console.log(execQuery, "execQuery");
-    return res.json({ status: true, data: results });
+    return res.json({ status: true, data: execQuery[0] });
   } catch (error) {
     console.error("Error retrieving outlet:", error.message);
   }

@@ -4,64 +4,46 @@ import mssql from "mssql";
 import mysql from "mysql2/promise";
 
 let poolToWebDiskon = null;
-let poolToSimpi = null;
-let poolToSimpiTest = null;
+let poolToBizops = null;
+let poolToBizopsTest = null;
 let poolToSqlServer = null;
 
-export async function getPoolToWebDiskon() {
-  if (!poolToWebDiskon) {
+export async function getPoolToBizops() {
+  if (!poolToBizops) {
     try {
-      poolToWebDiskon = mysql.createPool({
+      poolToBizops = mysql.createPool({
         host: "202.157.186.47",
         user: "mpiapps_technical",
         password: "Technical123",
-        database: "mpiapps_diskon_modifier_test",
-        connectionLimit: 10, // Adjust the limit as per your requirements
-      });
-      console.log("Connected to WebDiskon database!");
-    } catch (error) {
-      console.error("Error connecting to the database:", error.message);
-    }
-  }
-  return poolToWebDiskon;
-}
-
-export async function getPoolToSimpi() {
-  if (!poolToSimpi) {
-    try {
-      poolToSimpi = mysql.createPool({
-        host: "202.157.186.47",
-        user: "mpiapps_technical",
-        password: "Technical123",
-        database: "mpiapps_simpi",
+        database: "mpiapps_bizops",
         connectionLimit: 10, // Adjust the limit as per your requirements
         port: 3306,
       });
-      console.log("Connected to Simpi database!");
+      console.log("Connected to Bizops database!");
     } catch (error) {
       console.error("Error connecting to the database:", error.message);
     }
   }
-  return poolToSimpi;
+  return poolToBizops;
 }
 
-export async function getPoolToSimpiTest() {
-  if (!poolToSimpiTest) {
+export async function getPoolToBizopsTest() {
+  if (!poolToBizopsTest) {
     try {
-      poolToSimpi = mysql.createPool({
+      poolToBizops = mysql.createPool({
         host: "202.157.186.47",
         user: "mpiapps_technical",
         password: "Technical123",
-        database: "mpiapps_simpi_test",
+        database: "mpiapps_bizops_test",
         connectionLimit: 10, // Adjust the limit as per your requirements
         port: 3306,
       });
-      console.log("Connected to Simpi database!");
+      console.log("Connected to Bizops database!");
     } catch (error) {
       console.error("Error connecting to the database:", error.message);
     }
   }
-  return poolToSimpi;
+  return poolToBizops;
 }
 
 export const configSqlServerLocal = {

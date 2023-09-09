@@ -1,12 +1,10 @@
 import { Router } from "express";
-import { getUser } from "../controllers/user/index.js";
+import { getUser, editUser } from "../controllers/user/index.js";
 import { auth } from "../middlewares/index.js";
 
 const router = Router();
 
-// AUTH
-// EDIT
-
 router.get("/", auth, getUser);
+router.put("/edit-user/:id", auth, editUser);
 
 export default router;

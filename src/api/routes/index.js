@@ -1,6 +1,12 @@
 import { Router } from "express";
 // import { specs, swaggerConfig } from '../../config/index.js';
+import auth from "./auth.js";
 import outlet from "./outlet.js";
+import role from "./role.js";
+import user from "./user.js";
 const router = Router();
+router.use("/auth", auth);
 router.use("/outlet", outlet);
+router.use("/role", role);
+router.use("/user", user);
 export default router;
